@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - screamer
+  workflow_dispatch:
 
 jobs:
   build:
