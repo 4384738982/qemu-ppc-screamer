@@ -1,4 +1,4 @@
-name: Build QEMU PPC Screamer
+name: Build QEMU Screamer Fork
 
 on:
   push:
@@ -10,28 +10,35 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.1.6
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev meson ninja-build
+    - name: Set up MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
 
-      - name: Initialize and update submodules
-        run: git submodule update --init --recursive
+    - name: Install dependencies using script
+      run: |
+        msys2_shell.cmd -defterm -no-start -mingw64 -c "cd $GITHUB_WORKSPACE && ./install-packages.sh"
 
-      - name: Create build directory
-        run: mkdir -p build
+    - name: Clone Screamer branch of QEMU
+      run: |
+        msys2_shell.cmd -defterm -no-start -mingw64 -c "git clone -b screamer https://github.com/mcayland/qemu qemu-screamer"
 
-      - name: Configure QEMU with Meson
-        run: meson setup build --cross-file ppc-softmmu
+    - name: Configure QEMU
+      run: |
+        msys2_shell.cmd -defterm -no-start -mingw64 -c "cd qemu-screamer && ./configure --target-list='ppc-softmmu' --enable-gtk --enable-sdl --audio-drv-list='pa' --enable-vde"
 
-      - name: Build QEMU with Ninja
-        run: ninja -C build
+    - name: Compile QEMU
+      run: |
+        msys2_shell.cmd -defterm -no-start -mingw64 -c "cd qemu-screamer && make -j $(nproc)"
 
-      - name: Verify build
-        run: file build/qemu-system-ppc
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: qemu-screamer-build
+        path: qemu-screamer/build
