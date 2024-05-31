@@ -23,19 +23,19 @@ jobs:
 
     - name: Install dependencies using script
       run: |
-        msys2_shell.cmd -defterm -no-start -mingw64 -c "cd $GITHUB_WORKSPACE && ./install-packages.sh"
+        C:\msys64\usr\bin\bash.exe -lc "cd $GITHUB_WORKSPACE && ./install-packages.sh"
 
     - name: Clone Screamer branch of QEMU
       run: |
-        msys2_shell.cmd -defterm -no-start -mingw64 -c "git clone -b screamer https://github.com/mcayland/qemu qemu-screamer"
+        C:\msys64\usr\bin\bash.exe -lc "git clone -b screamer https://github.com/mcayland/qemu qemu-screamer"
 
     - name: Configure QEMU
       run: |
-        msys2_shell.cmd -defterm -no-start -mingw64 -c "cd qemu-screamer && ./configure --target-list='ppc-softmmu' --enable-gtk --enable-sdl --audio-drv-list='pa' --enable-vde"
+        C:\msys64\usr\bin\bash.exe -lc "cd qemu-screamer && ./configure --target-list='ppc-softmmu' --enable-gtk --enable-sdl --audio-drv-list='pa' --enable-vde"
 
     - name: Compile QEMU
       run: |
-        msys2_shell.cmd -defterm -no-start -mingw64 -c "cd qemu-screamer && make -j $(nproc)"
+        C:\msys64\usr\bin\bash.exe -lc "cd qemu-screamer && make -j $(nproc)"
 
     - name: Archive build artifacts
       uses: actions/upload-artifact@v2
