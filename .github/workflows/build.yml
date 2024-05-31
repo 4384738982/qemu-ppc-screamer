@@ -1,0 +1,31 @@
+name: Build QEMU PPC Screamer
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build
+
+      - name: Configure and build QEMU
+        run: |
+          ./configure --target-list=ppc-softmmu
+          make -j$(nproc)
+
+      - name: Verify build
+        run: |
+          file ppc-softmmu/qemu-system-ppc
