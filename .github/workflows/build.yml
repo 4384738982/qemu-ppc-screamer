@@ -1,44 +1,34 @@
-name: Build QEMU Screamer Fork
+name: Build QEMU Screamer
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - screamer
 
 jobs:
   build:
-    runs-on: windows-latest
-
+    runs-on: ubuntu-22.04
+    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Set up MSYS2
-      uses: msys2/setup-msys2@v2
-      with:
-        update: true
-
-    - name: Install dependencies using script
+    - name: Install Required Packages
       run: |
-        C:\msys64\usr\bin\bash.exe -lc "cd $GITHUB_WORKSPACE && ./install-packages.sh"
-
-    - name: Clone Screamer branch of QEMU
+        sudo apt-get update
+        sudo apt-get install -y build-essential zlib1g-dev libglib2.0-dev libpixman-1-dev git
+        
+    - name: Clone Repository
+      run: git clone -b screamer https://github.com/mcayland/qemu qemu-screamer
+      
+    - name: Configure and Build
       run: |
-        C:\msys64\usr\bin\bash.exe -lc "git clone -b screamer https://github.com/mcayland/qemu qemu-screamer"
-
-    - name: Configure QEMU
-      run: |
-        C:\msys64\usr\bin\bash.exe -lc "cd qemu-screamer && ./configure --target-list='ppc-softmmu' --enable-gtk --enable-sdl --audio-drv-list='pa' --enable-vde"
-
-    - name: Compile QEMU
-      run: |
-        C:\msys64\usr\bin\bash.exe -lc "cd qemu-screamer && make -j $(nproc)"
-
-    - name: Archive build artifacts
+        cd qemu-screamer
+        ./configure --target-list="ppc-softmmu" --enable-gtk --enable-sdl --audio-drv-list="pa" --enable-vde
+        make -j $(nproc)
+      
+    - name: Strip Debug Symbols
+      run: strip qemu-screamer/build/qemu-system-ppc
+      
+    - name: Archive Executable
       uses: actions/upload-artifact@v2
       with:
-        name: qemu-screamer-build
-        path: qemu-screamer/build
+        name: qemu-executable
+        path: qemu-screamer/build/qemu-system-ppc
