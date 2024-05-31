@@ -14,18 +14,18 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3  # Updated to the latest version
+        uses: actions/checkout@v3
 
-      - name: Set up QEMU dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y git libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build
 
-      - name: Configure and build QEMU
-        run: |
-          ./configure --target-list=ppc-softmmu
-          make -j$(nproc)
+      - name: Configure QEMU
+        run: ./configure --target-list=ppc-softmmu
+
+      - name: Build QEMU
+        run: make -j$(nproc)
 
       - name: Verify build
-        run: |
-          file ppc-softmmu/qemu-system-ppc
+        run: file ppc-softmmu/qemu-system-ppc
