@@ -14,18 +14,24 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.6  # Updated to the specific version
+        uses: actions/checkout@v4.1.6
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build
+          sudo apt-get install -y git libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev meson ninja-build
 
-      - name: Configure QEMU
-        run: ./configure --target-list=ppc-softmmu
+      - name: Initialize and update submodules
+        run: git submodule update --init --recursive
 
-      - name: Build QEMU
-        run: make -j$(nproc)
+      - name: Create build directory
+        run: mkdir -p build
+
+      - name: Configure QEMU with Meson
+        run: meson setup build --cross-file ppc-softmmu
+
+      - name: Build QEMU with Ninja
+        run: ninja -C build
 
       - name: Verify build
-        run: file ppc-softmmu/qemu-system-ppc
+        run: file build/qemu-system-ppc
