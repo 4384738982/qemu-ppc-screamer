@@ -1,0 +1,34 @@
+name: Build QEMU Screamer
+
+on:
+  push:
+    branches:
+      - screamer
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: Install Required Packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential git ninja-build libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev libgtk-3-dev libsdl2-dev libaio-dev libbluetooth-dev libcapstone-dev libbrlapi-dev libbz2-dev libcap-ng-dev libcurl4-gnutls-dev libgtk-3-dev libibverbs-dev libjpeg8-dev libncurses5-dev libnuma-dev librbd-dev librdmacm-dev libsasl2-dev libsdl2-dev libseccomp-dev libsnappy-dev libssh-dev libvde-dev libvdeplug-dev libvte-2.91-dev libxen-dev liblzo2-dev valgrind xfslibs-dev libslirp-dev libnfs-dev libiscsi-dev
+      
+    - name: Clone Repository
+      run: git clone -b screamer https://github.com/mcayland/qemu qemu-screamer
+      
+    - name: Configure and Build
+      run: |
+        cd qemu-screamer
+        ./configure --target-list="ppc-softmmu" --enable-gtk --enable-sdl --audio-drv-list="pa" --enable-vde
+        make -j $(nproc)
+      
+    - name: Strip Debug Symbols
+      run: strip qemu-screamer/build/qemu-system-ppc
+      
+    - name: Archive Executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: qemu-executable
+        path: qemu-screamer/build/qemu-system-ppc
